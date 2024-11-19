@@ -40,7 +40,8 @@ AppAsset::register($this);
         ['label' => 'Contact', 'url' => ['/site/contact']],
         ['label' => 'Создание файлов с excel', 'url' => ['/site/files']],
         ['label' => 'Управление backup', 'url' => ['/backup/manage']],
-        ['label' => 'Загрузка данных в таблицу', 'url' => ['/file/upload']],
+        ['label' => 'Загрузка данных в таблицы', 'url' => ['/file/upload']],
+        ['label' => 'Экспорт данных из таблицы', 'url' => ['/export/index']],
     ];
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];

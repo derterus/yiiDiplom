@@ -323,41 +323,56 @@ class SiteController extends Controller
 
     
     // Функция для создания общего CSV файла
-private function createCombinedCsv($allData, $filename)
-{
-    $file = fopen($filename, 'w');
-    foreach ($allData as $sheetName => $data) {
-        fputcsv($file, [$sheetName]); // Разделитель с именем листа
-        if (!empty($data)) {
-            // Записываем заголовки
-            fputcsv($file, array_keys($data[0])); // Первые ключи как заголовки
-            foreach ($data as $row) {
-                fputcsv($file, $row); // Записываем строки данных
+    private function createCombinedCsv($allData, $filename)
+    {
+        $file = fopen($filename, 'w');
+        $sheetCount = count($allData);
+        $currentSheet = 0;
+    
+        foreach ($allData as $sheetName => $data) {
+            fputcsv($file, [$sheetName]); // Разделитель с именем листа
+            if (!empty($data)) {
+                // Записываем заголовки
+                fputcsv($file, array_keys($data[0])); // Первые ключи как заголовки
+                foreach ($data as $row) {
+                    fputcsv($file, $row); // Записываем строки данных
+                }
+            }
+            $currentSheet++;
+            // Добавляем пустую строку между листами, кроме последнего
+            if ($currentSheet < $sheetCount) {
+                fputcsv($file, []);
             }
         }
-        fputcsv($file, []); // Пустая строка между листами
+        fclose($file);
     }
-    fclose($file);
-}
-
+    
     
    // Функция для создания общего TXT файла
-private function createCombinedTxt($allData, $filename)
-{
-    $file = fopen($filename, 'w');
-    foreach ($allData as $sheetName => $data) {
-        fwrite($file, "$sheetName" . PHP_EOL); // Разделитель с именем листа
-        if (!empty($data)) {
-            // Записываем заголовки
-            fwrite($file, implode(',', array_keys($data[0])) . PHP_EOL); // Заголовки
-            foreach ($data as $row) {
-                fwrite($file, implode(',', $row) . PHP_EOL); // Записываем строки данных
-            }
-        }
-        fwrite($file, PHP_EOL); // Пустая строка между листами
-    }
-    fclose($file);
-}
+   private function createCombinedTxt($allData, $filename)
+   {
+       $file = fopen($filename, 'w');
+       $sheetCount = count($allData);
+       $currentSheet = 0;
+   
+       foreach ($allData as $sheetName => $data) {
+           fwrite($file, "$sheetName" . PHP_EOL); // Разделитель с именем листа
+           if (!empty($data)) {
+               // Записываем заголовки
+               fwrite($file, implode(',', array_keys($data[0])) . PHP_EOL); // Заголовки
+               foreach ($data as $row) {
+                   fwrite($file, implode(',', $row) . PHP_EOL); // Записываем строки данных
+               }
+           }
+           $currentSheet++;
+           // Добавляем пустую строку между листами, кроме последнего
+           if ($currentSheet < $sheetCount) {
+               fwrite($file, PHP_EOL);
+           }
+       }
+       fclose($file);
+   }
+   
 
     
 private function createCombinedXml($allData, $filename)

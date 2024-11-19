@@ -12,7 +12,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class FileController extends Controller
 {
-    public $enableCsrfValidation = false; // Для загрузки файлов через POST
+    public $enableCsrfValidation = false; // Отключение CSRF для загрузки файлов через POST
 
     public function actionUpload()
     {
@@ -40,29 +40,30 @@ class FileController extends Controller
         return $this->render('upload', ['model' => $model]);
     }
 
-    private function processFile($filePath)
-    {
-        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
-        $data = [];
+        private function processFile($filePath)
+        {
+            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+            $data = [];
 
-        switch ($extension) {
-            case 'csv':
-            case 'txt':
-                $data = $this->parseMultiTableCsv($filePath);
-                break;
-            case 'yaml':
-            case 'yml':
-                $data = $this->parseYaml($filePath);
-                break;
-            case 'xml':
-                $data = $this->parseXml($filePath);
-                break;
-            default:
-                throw new BadRequestHttpException('Unsupported file format: ' . $extension);
+            switch ($extension) {
+                case 'csv':
+                case 'txt':
+                    $data = $this->parseMultiTableCsv($filePath);
+                    break;
+                case 'yaml':
+                case 'yml':
+                    $data = $this->parseYaml($filePath);
+                    break;
+                case 'xml':
+                    $data = $this->parseXml($filePath);
+                    break;
+                default:
+                    throw new BadRequestHttpException('Unsupported file format: ' . $extension);
+            }
+
+        
+            $this->saveMultipleTables($data);
         }
-
-        $this->saveMultipleTables($data);
-    }
 
     // Парсинг CSV с несколькими таблицами
     private function parseMultiTableCsv($filePath)
@@ -93,40 +94,93 @@ class FileController extends Controller
     }
 
     private function parseXml($filePath)
-{
-    libxml_use_internal_errors(true); // Для обработки ошибок при парсинге
-
-    $xml = simplexml_load_file($filePath);
-    if (!$xml) {
-        $errors = libxml_get_errors();
-        foreach ($errors as $error) {
-            Yii::error("Ошибка XML: " . $error->message);  // Логируем все ошибки XML
+    {
+        // Загружаем XML из файла
+        $xml = simplexml_load_file($filePath);
+        if ($xml === false) {
+            throw new BadRequestHttpException('Invalid XML file');
         }
-        throw new BadRequestHttpException('Ошибка при загрузке XML файла.');
+    
+        // Массив для хранения данных для всех таблиц
+        $data = [];
+    
+        // Проходим по всем верхнеуровневым элементам (например, categories, manufacturers)
+        foreach ($xml as $tableName => $table) {
+            // Проверяем, что в каждом элементе есть дочерние строки (например, <row>)
+            if ($table->row) {
+                // Преобразуем строки в массив
+                $tableData = $this->simpleXmlToArray($table);
+    
+                // Добавляем данные для этой таблицы в итоговый массив
+                $data[$tableName] = $tableData;
+            }
+        }
+    
+        // Возвращаем массив с данными для всех таблиц
+        return $data;
+    }
+    
+    
+
+    private function simpleXmlToArray($xmlObject)
+    {
+        $array = [];
+        // Проходим по всем строкам <row> в текущем элементе
+        foreach ($xmlObject->row as $row) {
+            $rowArray = [];
+            // Преобразуем каждый элемент в ассоциативный массив
+            foreach ($row as $key => $value) {
+                $rowArray[$key] = (string)$value;
+            }
+            // Добавляем строку в итоговый массив
+            $array[] = $rowArray;
+        }
+        return $array;
     }
     
 
-    $json = json_encode($xml);
-    $data = json_decode($json, true); // Преобразуем XML в массив
-
-    return $data;
-}
 
 
 private function saveMultipleTables($data)
 {
     $db = Yii::$app->db;
+    
+    // Логируем данные для проверки
+    Yii::info('Данные для вставки: ' . Json::encode($data));
 
     foreach ($data as $tableName => $rows) {
+        // Проверяем, что $tableName действительно существует и rows не пуст
+        if (empty($tableName) || !is_array($rows)) {
+            Yii::error("Неверная структура данных для таблицы: $tableName");
+            throw new BadRequestHttpException("Ошибка в структуре данных для таблицы $tableName");
+        }
+
         Yii::info("Начинаем вставку в таблицу: $tableName");
 
         foreach ($rows as $row) {
+            if (!is_array($row) || empty($row)) {
+                Yii::error("Некорректные данные для строки таблицы $tableName: " . Json::encode($row));
+                throw new BadRequestHttpException("Некорректные данные для строки таблицы $tableName");
+            }
+
+            // Логируем структуру строки перед вставкой
+            Yii::info("Данные строки для вставки: " . Json::encode($row));
+
+            // Проверяем, что ключи строки совпадают с колонками таблицы
+            $columns = Yii::$app->db->getTableSchema($tableName)->getColumnNames();
+            foreach ($row as $key => $value) {
+                if (!in_array($key, $columns)) {
+                    Yii::error("Неверный ключ для данных: $key в строке: " . Json::encode($row));
+                    throw new BadRequestHttpException("Неверный ключ для данных: $key");
+                }
+            }
+
             try {
-                // Логируем запрос, который будет выполняться
+                // Логируем запрос
                 $query = $db->createCommand()->insert($tableName, $row)->getSql();
                 Yii::info("SQL-запрос для вставки данных: $query");
 
-                // Вставка данных
+                // Вставляем данные
                 $db->createCommand()->insert($tableName, $row)->execute();
 
                 Yii::info("Данные успешно вставлены в таблицу: $tableName");
@@ -137,6 +191,4 @@ private function saveMultipleTables($data)
         }
     }
 }
-
-
 }

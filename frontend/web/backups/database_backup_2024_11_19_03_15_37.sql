@@ -107,7 +107,7 @@ CREATE TABLE `migration` (
 
 LOCK TABLES `migration` WRITE;
 /*!40000 ALTER TABLE `migration` DISABLE KEYS */;
-INSERT INTO `migration` VALUES ('m000000_000000_base',1731722887),('m130524_201442_init',1731722887),('m190124_110200_add_verification_token_column_to_user_table',1731722887),('m241115_014353_SmartWatchMagazine',1731722889);
+INSERT INTO `migration` VALUES ('m000000_000000_base',1731982607),('m130524_201442_init',1731982610),('m190124_110200_add_verification_token_column_to_user_table',1731982610),('m241115_014353_SmartWatchMagazine',1731982610);
 /*!40000 ALTER TABLE `migration` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -124,12 +124,10 @@ CREATE TABLE `product_characteristics` (
   `characteristic_id` int NOT NULL,
   `value` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `product_characteristics_fk1` (`product_id`),
-  KEY `product_characteristics_fk2` (`characteristic_id`),
+  KEY `fk-product_characteristics-product_id` (`product_id`),
+  KEY `fk-product_characteristics-characteristic_id` (`characteristic_id`),
   CONSTRAINT `fk-product_characteristics-characteristic_id` FOREIGN KEY (`characteristic_id`) REFERENCES `characteristics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk-product_characteristics-product_id` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `product_characteristics_fk1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
-  CONSTRAINT `product_characteristics_fk2` FOREIGN KEY (`characteristic_id`) REFERENCES `characteristics` (`id`)
+  CONSTRAINT `fk-product_characteristics-product_id` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -155,9 +153,8 @@ CREATE TABLE `product_images` (
   `URL_изображения` varchar(255) NOT NULL,
   `Основное_изображение` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `product_images_fk1` (`product_id`),
-  CONSTRAINT `fk-product_images-product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `product_images_fk1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+  KEY `fk-product_images-product` (`product_id`),
+  CONSTRAINT `fk-product_images-product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -190,12 +187,10 @@ CREATE TABLE `products` (
   `Дата_создания` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `Дата_обновления` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `products_fk5` (`category_id`),
-  KEY `products_fk6` (`manufacturer_id`),
+  KEY `fk-products-category` (`category_id`),
+  KEY `fk-products-manufacturer` (`manufacturer_id`),
   CONSTRAINT `fk-products-category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk-products-manufacturer` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `products_fk5` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
-  CONSTRAINT `products_fk6` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`)
+  CONSTRAINT `fk-products-manufacturer` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -223,12 +218,10 @@ CREATE TABLE `reviews` (
   `Текст` text,
   `Дата` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `reviews_fk2` (`user_id`),
-  KEY `reviews_fk3` (`product_id`),
+  KEY `fk-reviews-user` (`user_id`),
+  KEY `fk-reviews-product` (`product_id`),
   CONSTRAINT `fk-reviews-product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk-reviews-user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reviews_fk2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `reviews_fk3` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+  CONSTRAINT `fk-reviews-user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -263,7 +256,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `password_reset_token` (`password_reset_token`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -284,4 +277,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-11-18 11:37:01
+-- Dump completed on 2024-11-19 11:15:37
