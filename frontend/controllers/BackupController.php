@@ -190,7 +190,10 @@ public function actionRestoreTableBackup($tableName, $filename)
     }
 
     // Формируем команду для восстановления таблицы
-    $command = "mysql -u " . escapeshellarg($db->username) . " -p" . escapeshellarg($db->password) . " " . escapeshellarg($dbName) . " < " . escapeshellarg($filePath);
+    $command = $command = "mysql --default-character-set=utf8mb4 -u " . escapeshellarg($db->username) .
+    " -p" . escapeshellarg($db->password) . " " . escapeshellarg($dbName) .
+    " < " . escapeshellarg($filePath);
+
 
     // Выполняем команду
     $output = shell_exec($command);

@@ -20,10 +20,12 @@ CREATE TABLE `products` (
   `Дата_создания` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `Дата_обновления` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `fk-products-category` (`category_id`),
-  KEY `fk-products-manufacturer` (`manufacturer_id`),
+  KEY `products_fk5` (`category_id`),
+  KEY `products_fk6` (`manufacturer_id`),
   CONSTRAINT `fk-products-category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk-products-manufacturer` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk-products-manufacturer` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `products_fk5` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
+  CONSTRAINT `products_fk6` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
